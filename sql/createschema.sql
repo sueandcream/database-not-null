@@ -63,9 +63,10 @@ CREATE TABLE market_basket (
                                market_basket_id  INTEGER       NOT NULL,
                                book_id           INTEGER       NOT NULL,
                                quantity          INTEGER       NOT NULL CHECK (quantity > 0),
-                               price_at_purchase NUMERIC(10,2) NOT NULL,
+                               price_at_purchase NUMERIC(10,2) NOT NULL CHECK (price_at_purchase > 0),
                                FOREIGN KEY (market_basket_id) REFERENCES total_sales(market_basket_id),
-                               FOREIGN KEY (book_id)       REFERENCES book(book_id)
+                               FOREIGN KEY (book_id)       REFERENCES book(book_id),
+                               UNIQUE (market_basket_id, book_id)
 );
 
 -- 8. customer_history
