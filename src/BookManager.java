@@ -6,16 +6,16 @@ import java.util.Scanner;
 
 public class BookManager {
 
-    // 1. Product 추가 기능 (INSERT)
-    public static void addProduct(Connection conn, Scanner scanner) {
-        System.out.println("\n=== Register New Product ===");
+    // 1. Book 추가 기능 (INSERT)
+    public static void addBook(Connection conn, Scanner scanner) {
+        System.out.println("\n=== Register New Book ===");
         
-        System.out.print("Product ID (Integer): ");
-        int product_id = scanner.nextInt();
+        System.out.print("Book ID (Integer): ");
+        int book_id = scanner.nextInt();
         scanner.nextLine();
         
-        System.out.print("Product Title: ");
-        String product_name = scanner.nextLine();
+        System.out.print("Book Title: ");
+        String title = scanner.nextLine();
         
         System.out.print("Author Name: ");
         String author = scanner.nextLine();
@@ -31,12 +31,12 @@ public class BookManager {
         scanner.nextLine();
 
         // [REQ10] PreparedStatement 사용하기 위해
-        String sql = "INSERT INTO product (product_id, product_name, author, category_id, publisher_id, unit_price) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO book (book_id, title, author, category_id, publisher_id, unit_price) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             // ? 자리 mapping
-            pstmt.setInt(1, product_id);
-            pstmt.setString(2, product_name);
+            pstmt.setInt(1, book_id);
+            pstmt.setString(2, title);
             pstmt.setString(3, author);
             pstmt.setInt(4, category_id);
             pstmt.setInt(5, publisher_id);
@@ -44,63 +44,63 @@ public class BookManager {
 
             int rows = pstmt.executeUpdate();
             if (rows > 0) {
-                System.out.println(">> Product successfully registered!");
+                System.out.println(">> Book successfully registered!");
             }
         } catch (SQLException e) {
-            System.out.println(">> [ERROR] Failed to register product: " + e.getMessage());
+            System.out.println(">> [ERROR] Failed to register book: " + e.getMessage());
         }
     }
 
-    // 2. Product 가격(unit price) 수정 기능 (UPDATE)
-    public static void updateProductPrice(Connection conn, Scanner scanner) {
-        System.out.println("\n=== Update Product Unit Price ===");
+    // 2. Book 가격(unit price) 수정 기능 (UPDATE)
+    public static void updateBookPrice(Connection conn, Scanner scanner) {
+        System.out.println("\n=== Update Book Unit Price ===");
         
-        System.out.print("Product ID to update: ");
-        int product_id = scanner.nextInt();
+        System.out.print("Book ID to update: ");
+        int book_id = scanner.nextInt();
         
         System.out.print("New Unit Price: ");
         double new_price = scanner.nextDouble();
         scanner.nextLine();
 
-        String sql = "UPDATE product SET unit_price = ? WHERE product_id = ?";
+        String sql = "UPDATE book SET unit_price = ? WHERE book_id = ?";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setDouble(1, new_price);
-            pstmt.setInt(2, product_id);
+            pstmt.setInt(2, book_id);
 
             int rows = pstmt.executeUpdate();
             if (rows > 0) {
-                System.out.println(">> Product price successfully updated!");
+                System.out.println(">> Book price successfully updated!");
             } else {
-                System.out.println(">> [WARNING] No product found with the given ID.");
+                System.out.println(">> [WARNING] No book found with the given ID.");
             }
         } catch (SQLException e) {
-            System.out.println(">> [ERROR] Failed to update product price: " + e.getMessage());
+            System.out.println(">> [ERROR] Failed to update book price: " + e.getMessage());
         }
     }
 
-    // 3. Delete Existing Product (DELETE)
-    public static void deleteProduct(Connection conn, Scanner scanner) {
-        System.out.println("\n=== Delete Product from Catalog ===");
+    // 3. Delete Existing Book (DELETE)
+    public static void deleteBook(Connection conn, Scanner scanner) {
+        System.out.println("\n=== Delete Book from Catalog ===");
         
-        System.out.print("Enter Product ID to delete: ");
-        int id = scanner.nextInt();
+        System.out.print("Enter Book ID to delete: ");
+        int book_id = scanner.nextInt();
         scanner.nextLine();
 
-        String sql = "DELETE FROM product WHERE product_id = ?";
+        String sql = "DELETE FROM book WHERE book_id = ?";
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, id);
+            pstmt.setInt(1, book_id);
 
             int rows = pstmt.executeUpdate();
             if (rows > 0) {
-                System.out.println(">> Product successfully removed from the database!");
+                System.out.println(">> Book successfully removed from the database!");
             } else {
-                System.out.println(">> [WARNING] No product found with the given ID. Delete aborted.");
+                System.out.println(">> [WARNING] No book found with the given ID. Delete aborted.");
             }
         } catch (SQLException e) {
-            System.out.println(">> [ERROR] Failed to delete product: " + e.getMessage());
-            System.out.println(">> Note: If this product is linked to a sales transaction history, it cannot be deleted due to FK constraints.");
+            System.out.println(">> [ERROR] Failed to delete book: " + e.getMessage());
+            System.out.println(">> Note: If this book is linked to a sales transaction history, it cannot be deleted due to FK constraints.");
         }
     }
 }
