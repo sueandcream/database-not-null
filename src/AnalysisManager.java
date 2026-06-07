@@ -272,4 +272,54 @@ public class AnalysisManager {
             e.printStackTrace();
         }
     }
+
+    
+    // [GROUP BY] Sales Statistics by Category
+    // Displays aggregated sales metrics for all categories to analyze performance
+    public static void viewSalesStatisticsByCategory(Connection conn) {
+        System.out.println("\n=== View Book Sales Statistics by Category ===");
+
+        // 카테고리별로 그룹을 묶어(GROUP BY) 등록된 도서 수, 총 판매 수량, 총 매출액을 집계합니다.
+        String sql = """
+                SELECT 
+                    category_name, 
+                    COUNT(DISTINCT book_id) AS unique_books_count, 
+                    SUM(total_quantity_sold) AS total_qty_sold, 
+                    SUM(total_revenue) AS category_total_revenue 
+                FROM book_sales_summary_view 
+                GROUP BY category_name 
+                ORDER BY category_total_revenue DESC
+                """;
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            System.out.printf(
+                    "\n%-20s %-20s %-20s %-20s%n", 
+                    "Category Name", "Books Registered", "Total Qty Sold", "Total Revenue"
+            );
+            System.out.println("-".repeat(85));
+
+            boolean found = false;
+            while (rs.next()) {
+                found = true;
+
+                System.out.printf(
+                        "%-20s %-20d %-20d $%-14.2f%n", 
+                        rs.getString("category_name"), 
+                        rs.getInt("unique_books_count"), 
+                        rs.getInt("total_qty_sold"), 
+                        rs.getDouble("category_total_revenue")
+                );
+            }
+
+            if (!found) {
+                System.out.println(">> No sales statistics available yet.");
+            }
+            System.out.println("-".repeat(85));
+
+        } catch (SQLException e) {
+            System.out.println(">> [ERROR] Failed to retrieve sales statistics: " + e.getMessage());
+        }
+    }
 }
