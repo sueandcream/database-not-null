@@ -1,5 +1,6 @@
   import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
@@ -128,6 +129,91 @@ public class CustomerManager {
         } finally {
             try {
                 // 다른 쿼리 작업을 위해 자동 커밋 모드를 다시 true로 복구
+                conn.setAutoCommit(true);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    // 3. [REQ9, REQ10] Customer 삭제 기능 (DELETE)
+    public static void deleteCustomer(Connection conn, Scanner scanner) {
+        System.out.println("\n=== [REQ9] 고객 삭제 ===");
+
+        System.out.print("삭제할 고객의 ID를 입력하세요: ");
+        int id = scanner.nextInt();
+        scanner.nextLine(); // 버퍼 비우기
+
+        String checkCustomerSql =
+                "SELECT First_name, Last_name FROM customer WHERE Customer_ID = ?";
+
+        String checkSalesSql =
+                "SELECT COUNT(*) AS sales_count FROM sales WHERE Customer_ID = ?";
+
+        String deleteHistorySql =
+                "DELETE FROM customer_history WHERE customer_id = ?";
+
+        String deleteCustomerSql =
+                "DELETE FROM customer WHERE Customer_ID = ?";
+
+        try {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmtCheckCustomer = conn.prepareStatement(checkCustomerSql)) {
+                pstmtCheckCustomer.setInt(1, id);
+                ResultSet rsCustomer = pstmtCheckCustomer.executeQuery();
+
+                if (!rsCustomer.next()) {
+                    System.out.println(">> 해당 ID의 고객이 존재하지 않습니다.");
+                    conn.rollback();
+                    return;
+                }
+
+                String fullName = rsCustomer.getString("First_name") + " " + rsCustomer.getString("Last_name");
+
+                try (PreparedStatement pstmtCheckSales = conn.prepareStatement(checkSalesSql)) {
+                    pstmtCheckSales.setInt(1, id);
+                    ResultSet rsSales = pstmtCheckSales.executeQuery();
+                    rsSales.next();
+
+                    int salesCount = rsSales.getInt("sales_count");
+
+                    if (salesCount > 0) {
+                        System.out.println(">> 구매 이력이 있는 고객은 삭제할 수 없습니다.");
+                        System.out.println(">> 고객명: " + fullName);
+                        conn.rollback();
+                        return;
+                    }
+                }
+
+                try (PreparedStatement pstmtDeleteHistory = conn.prepareStatement(deleteHistorySql);
+                     PreparedStatement pstmtDeleteCustomer = conn.prepareStatement(deleteCustomerSql)) {
+
+                    pstmtDeleteHistory.setInt(1, id);
+                    pstmtDeleteHistory.executeUpdate();
+
+                    pstmtDeleteCustomer.setInt(1, id);
+                    int deletedRows = pstmtDeleteCustomer.executeUpdate();
+
+                    if (deletedRows > 0) {
+                        conn.commit();
+                        System.out.println(">> 고객 삭제 성공!");
+                        System.out.println(">> 삭제된 고객: " + fullName);
+                    } else {
+                        conn.rollback();
+                        System.out.println(">> 고객 삭제 실패.");
+                    }
+                }
+            } catch (SQLException e) {
+                conn.rollback();
+                System.out.println(">> SQL 실행 중 에러 발생. 트랜잭션 롤백 실행.");
+                throw e;
+            }
+
+        } catch (SQLException e) {
+            System.out.println(">> [오류] 고객 삭제 실패: " + e.getMessage());
+        } finally {
+            try {
                 conn.setAutoCommit(true);
             } catch (SQLException e) {
                 e.printStackTrace();

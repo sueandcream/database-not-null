@@ -31,7 +31,7 @@ public class Main {
                     case 2 -> BookManager.addBook(conn, scanner);
                     case 3 -> CustomerManager.updateCustomer(conn, scanner);
                     case 4 -> BookManager.updateBookPrice(conn, scanner);
-                   // case 5 -> CustomerManager.deleteCustomer(conn, scanner);
+                    case 5 -> CustomerManager.deleteCustomer(conn, scanner);
                     case 6 -> BookManager.deleteBook(conn, scanner);
                     case 7 -> AnalysisManager.viewBestsellingBooksByCategory(conn, scanner);
                     case 8 -> AnalysisManager.compareBookSalesBeforeAfterPriceChange(conn, scanner);
