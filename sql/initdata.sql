@@ -131,13 +131,13 @@ INSERT INTO market_basket VALUES (28, 1012, 7, 2, 25.00);
 INSERT INTO market_basket VALUES (29, 1012, 15, 1, 15.50);
 
 -- 8. customer_history
-INSERT INTO customer_history VALUES (1, 1, 'Busan', '2004-03-12', 'Silver', '2026-04-01 10:00:00');
-INSERT INTO customer_history VALUES (2, 2, 'Seoul', '1998-07-21', 'Bronze', '2026-04-02 10:00:00');
-INSERT INTO customer_history VALUES (3, 3, 'Daegu', '1995-11-05', 'Silver', '2026-04-03 10:00:00');
-INSERT INTO customer_history VALUES (4, 4, 'Incheon', '2001-02-17', 'Silver', '2026-04-04 10:00:00');
-INSERT INTO customer_history VALUES (5, 5, 'Seoul', '1989-09-30', 'Bronze', '2026-04-05 10:00:00');
-INSERT INTO customer_history VALUES (6, 6, 'Busan', '1992-12-14', 'Silver', '2026-04-06 10:00:00');
-INSERT INTO customer_history VALUES (7, 7, 'Daejeon', '1985-04-08', 'Bronze', '2026-04-07 10:00:00');
-INSERT INTO customer_history VALUES (8, 8, 'Seoul', '2006-06-25', 'Bronze', '2026-04-08 10:00:00');
-INSERT INTO customer_history VALUES (9, 9, 'Gwangju', '1979-01-19', 'Silver', '2026-04-09 10:00:00');
-INSERT INTO customer_history VALUES (10, 10, 'Busan', '2000-10-03', 'Silver', '2026-04-10 10:00:00');
+INSERT INTO customer_history VALUES (1, 1, 'Busan', '2004-03-12', 'Silver', '2026-05-03 10:00:00');
+INSERT INTO customer_history VALUES (2, 2, 'Seoul', '1998-07-21', 'Bronze', '2026-05-04 10:00:00');
+INSERT INTO customer_history VALUES (3, 3, 'Daegu', '1995-11-05', 'Silver', '2026-05-02 10:00:00');
+INSERT INTO customer_history VALUES (4, 4, 'Incheon', '2001-02-17', 'Silver', '2026-05-03 10:00:00');
+INSERT INTO customer_history VALUES (5, 5, 'Seoul', '1989-09-30', 'Bronze', '2026-05-04 10:00:00');
+INSERT INTO customer_history VALUES (6, 6, 'Busan', '1992-12-14', 'Silver', '2026-05-04 10:00:00');
+INSERT INTO customer_history VALUES (7, 7, 'Daejeon', '1985-04-08', 'Bronze', '2026-05-05 10:00:00');
+INSERT INTO customer_history VALUES (8, 8, 'Seoul', '2006-06-25', 'Bronze', '2026-05-05 10:00:00');
+INSERT INTO customer_history VALUES (9, 9, 'Gwangju', '1979-01-19', 'Silver', '2026-05-06 10:00:00');
+INSERT INTO customer_history VALUES (10, 10, 'Busan', '2000-10-03', 'Silver', '2026-05-06 10:00:00');
