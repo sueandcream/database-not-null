@@ -71,7 +71,7 @@ CREATE TABLE market_basket (
 
 -- 8. customer_history
 CREATE TABLE customer_history (
-                                  history_id       INTEGER   PRIMARY KEY,
+                                  history_id       INTEGER AUTO_INCREMENT PRIMARY KEY,
                                   customer_id      INTEGER   NOT NULL,
                                   city             VARCHAR(50),
                                   birth_date       DATE,
