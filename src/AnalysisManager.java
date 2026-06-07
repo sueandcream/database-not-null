@@ -122,7 +122,8 @@ public class AnalysisManager {
         }
     }
 
-
+    // REQ14: 고객 인구통계 정보(나이대) 기반 판매 분석
+    // 사용자가 나이를 입력하면 해당 연령대의 판매량과 추천 도서를 조회
     public void viewTotalBookSalesByAgeGroup() {
         Scanner sc = new Scanner(System.in);
 
@@ -130,15 +131,20 @@ public class AnalysisManager {
         System.out.print("Enter age: ");
         int age = sc.nextInt();
 
+        // 입력된 나이를 연령대로 변환
         String ageGroup = getAgeGroup(age);
 
         System.out.println();
         System.out.println("Age Group: " + ageGroup);
 
+        // 변경 전후 판매량 분석
         printSalesBeforeAfterChange(ageGroup);
+
+        // 연령대별 추천 도서 출력
         printTopRecommendedBooks(ageGroup);
     }
 
+    // 입력받은 나이를 연령대 문자열로 변환
     private String getAgeGroup(int age) {
         if (age < 20) {
             return "Under 20";
@@ -151,6 +157,9 @@ public class AnalysisManager {
         }
     }
 
+    // REQ14
+    // 고객 정보 변경(customer_history)을 기준으로
+    // 변경 전후 판매 수량을 비교 분석
     private void printSalesBeforeAfterChange(String ageGroup) {
         String sql = """
                 SELECT
@@ -210,6 +219,8 @@ public class AnalysisManager {
         }
     }
 
+    // REQ14 + GROUP BY
+    // 동일 연령대 고객들이 가장 많이 구매한 도서 TOP 3 추천
     private void printTopRecommendedBooks(String ageGroup) {
         String sql = """
                 SELECT
