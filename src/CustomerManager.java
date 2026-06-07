@@ -58,17 +58,17 @@ public class CustomerManager {
         }
     }
 
-  // 2. [REQ8, REQ12] Customer 정보 수정 및 이력 저장 (UPDATE & INSERT with Transaction)
+    // 2. [REQ8, REQ12] Customer 정보 수정 및 이력 저장 (UPDATE & INSERT with Transaction)
     public static void updateCustomer(Connection conn, Scanner scanner) {
         System.out.println("\n=== [REQ8] 고객 정보 수정 및 이력 기록 ===");
-        
+
         System.out.print("정보를 수정할 고객의 ID를 입력하세요: ");
         int id = scanner.nextInt();
         scanner.nextLine(); // 버퍼 비우기
-        
+
         System.out.print("새로운 도시(City): ");
         String newCity = scanner.nextLine();
-        
+
         System.out.print("새로운 멤버십 등급: ");
         String newGrade = scanner.nextLine();
 
@@ -77,7 +77,7 @@ public class CustomerManager {
 
         // 1. 고객 정보 수정을 위한 SQL
         String updateCustomerSql = "UPDATE customer SET City = ?, membership_grade = ?, birth_date = ? WHERE Customer_ID = ?";
-        
+
         // 2. 변경 이력(History) 저장을 위한 SQL (changed_at은 DB의 CURRENT_TIMESTAMP 활용)
         String insertHistorySql = "INSERT INTO customer_history (customer_id, city, birth_date, membership_grade, changed_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
 
@@ -93,7 +93,7 @@ public class CustomerManager {
                 pstmtUpdate.setInt(4, id);
 
                 int updateRows = pstmtUpdate.executeUpdate();
-                
+
                 if (updateRows > 0) {
                     System.out.println(">> 고객 정보 수정 완료. 이력을 기록합니다...");
 
@@ -134,3 +134,4 @@ public class CustomerManager {
             }
         }
     }
+}
