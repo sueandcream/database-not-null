@@ -82,6 +82,14 @@ CREATE TABLE customer_history (
                                   changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                   FOREIGN KEY (customer_id) REFERENCES customer(Customer_ID)
 );
+CREATE TABLE book_price_history (
+    history_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    book_id INTEGER NOT NULL,
+    old_price NUMERIC(10,2) NOT NULL,
+    new_price NUMERIC(10,2) NOT NULL,
+    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (book_id) REFERENCES book(book_id)
+);
 
    
 -- ============================================================
