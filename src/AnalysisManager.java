@@ -85,57 +85,94 @@ public class AnalysisManager {
     }
 
     // REQ-08: Compare Book Sales Before and After Price Change (JOIN + VIEW + REQ13)
-    public static void compareBookSalesBeforeAfterPriceChange(Connection conn, Scanner scanner) {
-        System.out.println("\n=== Compare Book Sales Before/After Price Change ===");
+   public static void compareBookSalesBeforeAfterPriceChange(Connection conn, Scanner scanner) {
+    System.out.println("\n=== Compare Book Sales Before/After Price Change ===");
 
-        System.out.print("Enter book title to analyze: ");
-        String title = scanner.nextLine();
+    System.out.print("Enter book title to analyze: ");
+    String title = scanner.nextLine();
 
-        String sql = """
-            SELECT
-                b.title,
-                b.unit_price        AS current_price,
-                mb.price_at_purchase AS sold_price,
-                SUM(mb.quantity)     AS total_qty_sold,
-                SUM(mb.quantity * mb.price_at_purchase) AS total_revenue,
-                CASE
-                    WHEN mb.price_at_purchase < b.unit_price THEN 'Before Price Increase'
-                    WHEN mb.price_at_purchase > b.unit_price THEN 'Before Price Decrease'
-                    ELSE 'At Current Price'
-                END AS price_period
-            FROM book b
-            JOIN market_basket mb ON b.book_id = mb.book_id
-            WHERE b.title LIKE ?
-            GROUP BY b.title, b.unit_price, mb.price_at_purchase
-            ORDER BY mb.price_at_purchase
+    String sql = """
+        SELECT
+            b.title,
+            h.old_price,
+            h.new_price,
+
+            CASE
+                WHEN s.transaction_timestamp < h.changed_at
+                    THEN 'Before Change'
+                ELSE 'After Change'
+            END AS period,
+
+            SUM(mb.quantity) AS total_qty_sold,
+            SUM(mb.quantity * mb.price_at_purchase) AS total_revenue
+
+        FROM book_price_history h
+
+        JOIN book b
+            ON h.book_id = b.book_id
+
+        JOIN market_basket mb
+            ON b.book_id = mb.book_id
+
+        JOIN sales s
+            ON mb.market_basket_id = s.market_basket_id
+
+        WHERE b.title LIKE ?
+
+        GROUP BY
+            b.title,
+            h.old_price,
+            h.new_price,
+            period
+
+        ORDER BY
+            h.changed_at
         """;
 
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, "%" + title + "%");
-            ResultSet rs = pstmt.executeQuery();
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            System.out.printf("\n%-30s %-15s %-15s %-10s %-15s %-25s%n",
-                "Title", "Current Price", "Sold Price", "Qty", "Revenue", "Period");
-            System.out.println("-".repeat(110));
+        pstmt.setString(1, "%" + title + "%");
+
+        try (ResultSet rs = pstmt.executeQuery()) {
+
+            System.out.printf(
+                "\n%-30s %-12s %-12s %-15s %-10s %-15s%n",
+                "Title",
+                "Old Price",
+                "New Price",
+                "Period",
+                "Qty Sold",
+                "Revenue"
+            );
+
+            System.out.println("-".repeat(105));
 
             boolean found = false;
+
             while (rs.next()) {
                 found = true;
-                System.out.printf("%-30s $%-14.2f $%-14.2f %-10d $%-14.2f %-25s%n",
+
+                System.out.printf(
+                    "%-30s $%-11.2f $%-11.2f %-15s %-10d $%-14.2f%n",
                     rs.getString("title"),
-                    rs.getDouble("current_price"),
-                    rs.getDouble("sold_price"),
+                    rs.getDouble("old_price"),
+                    rs.getDouble("new_price"),
+                    rs.getString("period"),
                     rs.getInt("total_qty_sold"),
-                    rs.getDouble("total_revenue"),
-                    rs.getString("price_period"));
+                    rs.getDouble("total_revenue")
+                );
             }
-            if (!found) System.out.println(">> No sales data found for: " + title);
 
-        } catch (SQLException e) {
-            System.out.println(">> [ERROR] " + e.getMessage());
+            if (!found) {
+                System.out.println(">> No sales data found for: " + title);
+            }
         }
-    }
 
+    } catch (SQLException e) {
+        System.out.println(">> [ERROR] " + e.getMessage());
+    }
+}
+    
     // REQ14: 고객 인구통계 정보(나이대) 기반 판매 분석
     // 사용자가 나이를 입력하면 해당 연령대의 판매량과 추천 도서를 조회
     public void viewTotalBookSalesByAgeGroup() {
