@@ -73,13 +73,17 @@ CREATE TABLE market_basket (
 CREATE TABLE customer_history (
                                   history_id       INTEGER AUTO_INCREMENT PRIMARY KEY,
                                   customer_id      INTEGER   NOT NULL,
-                                  city             VARCHAR(50),
-                                  birth_date       DATE,
-                                  membership_grade VARCHAR(20),
-                                  changed_at       TIMESTAMP NOT NULL,
-                                  FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+                                  old_city VARCHAR(50),
+                                  new_city VARCHAR(50),
+                                  old_birth_date DATE,
+                                  new_birth_date DATE,
+                                  old_membership_grade VARCHAR(20),
+                                  new_membership_grade VARCHAR(20),
+                                  changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                  FOREIGN KEY (customer_id) REFERENCES customer(Customer_ID)
 );
 
+   
 -- ============================================================
 -- INDEX (REQ3, REQ11)
 -- ============================================================
