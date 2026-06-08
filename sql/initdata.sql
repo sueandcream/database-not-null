@@ -141,3 +141,25 @@ INSERT INTO customer_history VALUES (7, 7, 'Daejeon', '1985-04-08', 'Bronze', '2
 INSERT INTO customer_history VALUES (8, 8, 'Seoul', '2006-06-25', 'Bronze', '2026-05-05 10:00:00');
 INSERT INTO customer_history VALUES (9, 9, 'Gwangju', '1979-01-19', 'Silver', '2026-05-06 10:00:00');
 INSERT INTO customer_history VALUES (10, 10, 'Busan', '2000-10-03', 'Silver', '2026-05-06 10:00:00');
+
+-- 9. book_price_history
+
+INSERT INTO book_price_history
+(book_id, old_price, new_price, changed_at)
+VALUES
+(2, 15.00, 18.00, '2026-05-02 09:00:00');
+
+INSERT INTO book_price_history
+(book_id, old_price, new_price, changed_at)
+VALUES
+(3, 20.00, 22.00, '2026-05-04 09:00:00');
+
+INSERT INTO book_price_history
+(book_id, old_price, new_price, changed_at)
+VALUES
+(10, 25.00, 30.00, '2026-05-03 09:00:00');
+
+INSERT INTO book_price_history
+(book_id, old_price, new_price, changed_at)
+VALUES
+(15, 13.00, 15.50, '2026-05-05 09:00:00');
