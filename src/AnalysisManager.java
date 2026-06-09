@@ -183,19 +183,24 @@ public static void compareBookSalesBeforeAfterPriceChange(Connection conn, Scann
     // 고객 정보 변경(customer_history)을 기준으로
     // 변경 전후 판매 수량을 비교 분석
     private static void printSalesBeforeAfterChange(Connection conn, String ageGroup) {
+
         String sql = """
         SELECT
             CASE
+                WHEN ch.changed_at IS NULL THEN 'No Change'
                 WHEN s.transaction_timestamp < ch.changed_at THEN 'Before Change'
                 ELSE 'After Change'
             END AS change_period,
-            SUM(mb.quantity) AS total_books_sold,
-            SUM(mb.quantity * mb.price_at_purchase) AS total_sales_amount
+            SUM(mb.quantity) AS total_books_sold
         FROM customer c
-        JOIN customer_history ch ON c.customer_id = ch.customer_id
-        JOIN sales s ON c.customer_id = s.customer_id
-        JOIN total_sales ts ON s.market_basket_id = ts.market_basket_id
-        JOIN market_basket mb ON ts.market_basket_id = mb.market_basket_id
+        LEFT JOIN customer_history ch
+            ON c.customer_id = ch.customer_id
+        JOIN sales s
+            ON c.customer_id = s.customer_id
+        JOIN total_sales ts
+            ON s.market_basket_id = ts.market_basket_id
+        JOIN market_basket mb
+            ON ts.market_basket_id = mb.market_basket_id
         WHERE
             CASE
                 WHEN TIMESTAMPDIFF(YEAR, c.birth_date, s.transaction_timestamp) < 20 THEN 'Under 20'
@@ -208,32 +213,41 @@ public static void compareBookSalesBeforeAfterPriceChange(Connection conn, Scann
 
         int beforeSales = 0;
         int afterSales = 0;
+        int noChangeSales = 0;
 
-        try (
-                PreparedStatement pstmt = conn.prepareStatement(sql)
-        ) {
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, ageGroup);
 
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
+
                 String period = rs.getString("change_period");
                 int total = rs.getInt("total_books_sold");
 
-                if (period.equals("Before Change")) {
+                if ("Before Change".equals(period)) {
                     beforeSales = total;
-                } else if (period.equals("After Change")) {
+                }
+                else if ("After Change".equals(period)) {
                     afterSales = total;
+                }
+                else if ("No Change".equals(period)) {
+                    noChangeSales = total;
                 }
             }
 
-            System.out.println();
-            System.out.println("[Sales Before Demographic Change]");
-            System.out.println(beforeSales + " books sold");
+            int totalSales = beforeSales + afterSales + noChangeSales;
 
             System.out.println();
-            System.out.println("[Sales After Demographic Change]");
-            System.out.println(afterSales + " books sold");
+            System.out.println("========================================================");
+            System.out.printf("%-25s %-15s%n", "Category", "Books Sold");
+            System.out.println("--------------------------------------------------------");
+            System.out.printf("%-25s %-15d%n", "Total", totalSales);
+            System.out.printf("%-25s %-15d%n", "Before Change", beforeSales);
+            System.out.printf("%-25s %-15d%n", "After Change", afterSales);
+            System.out.printf("%-25s %-15d%n", "No Change", noChangeSales);
+            System.out.println("========================================================");
 
         } catch (Exception e) {
             System.out.println("Failed to analyze age group sales.");
