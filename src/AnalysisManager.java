@@ -89,37 +89,55 @@ public class AnalysisManager {
         System.out.print("Enter book title keyword: ");
         String titleKeyword = scanner.nextLine();
 
-        String sql = """
-        SELECT
-            v.title,
-            h.changed_at AS price_changed_at,
-            h.old_price,
-            h.new_price,
-            CASE
-                WHEN v.transaction_timestamp < h.changed_at THEN 'Before Price Change'
-                ELSE 'After Price Change'
-            END AS period,
-            SUM(v.quantity) AS total_quantity_sold,
-            SUM(v.subtotal) AS total_sales_amount
-        FROM order_summary_view v
-        JOIN book_price_history h
-            ON v.title = (
-                SELECT b.title
-                FROM book b
-                WHERE b.book_id = h.book_id
-            )
-        WHERE v.title LIKE ?
-        GROUP BY
-            v.title,
-            h.changed_at,
-            h.old_price,
-            h.new_price,
-            CASE
-                WHEN v.transaction_timestamp < h.changed_at THEN 'Before Price Change'
-                ELSE 'After Price Change'
-            END
-        ORDER BY v.title, h.changed_at, period
-    """;
+    String sql = """
+SELECT
+    v.title,
+    h.changed_at AS price_changed_at,
+    h.old_price,
+    h.new_price,
+    CASE
+        WHEN v.transaction_timestamp < h.changed_at THEN 'Before Price Change'
+        ELSE 'After Price Change'
+    END AS period,
+    SUM(v.quantity) AS total_quantity_sold,
+    SUM(v.subtotal) AS total_sales_amount
+FROM order_summary_view v
+JOIN book_price_history h
+    ON v.book_id = h.book_id
+WHERE v.title LIKE ?
+GROUP BY
+    v.title,
+    h.changed_at,
+    h.old_price,
+    h.new_price,
+    CASE
+        WHEN v.transaction_timestamp < h.changed_at THEN 'Before Price Change'
+        ELSE 'After Price Change'
+    END
+ORDER BY
+    h.changed_at,
+    period
+""";
+
+    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        pstmt.setString(1, "%" + title + "%");
+
+        try (ResultSet rs = pstmt.executeQuery()) {
+
+            System.out.printf(
+                "\n%-30s %-12s %-12s %-15s %-10s %-15s%n",
+                "Title",
+                "Old Price",
+                "New Price",
+                "Period",
+                "Qty Sold",
+                "Revenue"
+            );
+
+            System.out.println("-".repeat(105));
+
+            boolean found = false;
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, "%" + titleKeyword + "%");
