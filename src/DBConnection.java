@@ -8,6 +8,12 @@ public class DBConnection {
     private static final String PASSWORD = "비밀번호";
 
     public static Connection getConnection() throws SQLException {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            System.out.println("⚠️ MySQL 드라이버 부품(.jar)을 찾을 수 없습니다!");
+            e.printStackTrace();
+        }
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }
