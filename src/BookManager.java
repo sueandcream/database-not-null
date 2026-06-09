@@ -1,3 +1,4 @@
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -52,77 +53,70 @@ public class BookManager {
     }
 
  // 2. Book 가격(unit price) 수정 기능 (UPDATE with Transaction)
-    public static void updateBookPrice(Connection conn, Scanner scanner) {
-        System.out.println("\n=== Update Book Unit Price ===");
+ public static void updateBookPrice(Connection conn, Scanner scanner) {
+     System.out.print("Enter book ID to update price: ");
+     int bookId = Integer.parseInt(scanner.nextLine());
 
-        System.out.print("Book ID to update: ");
-        int book_id = scanner.nextInt();
+     System.out.print("Enter new price: ");
+     BigDecimal newPrice = new BigDecimal(scanner.nextLine());
 
-        System.out.print("New Unit Price: ");
-        double new_price = scanner.nextDouble();
-        scanner.nextLine();
+     String selectSql = "SELECT unit_price FROM book WHERE book_id = ?";
+     String historySql = """
+        INSERT INTO book_price_history (book_id, old_price, new_price)
+        VALUES (?, ?, ?)
+    """;
+     String updateSql = "UPDATE book SET unit_price = ? WHERE book_id = ?";
 
-        String selectSql = "SELECT title, unit_price FROM book WHERE book_id = ?";
-        String insertHistorySql =
-                "INSERT INTO book_price_history (book_id, old_price, new_price, changed_at) " +
-                "VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
-        String updateSql = "UPDATE book SET unit_price = ? WHERE book_id = ?";
+     try {
+         conn.setAutoCommit(false);
 
-        try {
-            conn.setAutoCommit(false);
+         BigDecimal oldPrice;
 
-            try (PreparedStatement pstmtSelect = conn.prepareStatement(selectSql)) {
-                pstmtSelect.setInt(1, book_id);
-                ResultSet rs = pstmtSelect.executeQuery();
+         try (PreparedStatement selectStmt = conn.prepareStatement(selectSql)) {
+             selectStmt.setInt(1, bookId);
 
-                if (!rs.next()) {
-                    System.out.println(">> [WARNING] No book found with the given ID.");
-                    conn.rollback();
-                    return;
-                }
+             try (ResultSet rs = selectStmt.executeQuery()) {
+                 if (!rs.next()) {
+                     System.out.println("Book not found.");
+                     conn.rollback();
+                     return;
+                 }
+                 oldPrice = rs.getBigDecimal("unit_price");
+             }
+         }
 
-                String title = rs.getString("title");
-                double old_price = rs.getDouble("unit_price");
+         try (PreparedStatement historyStmt = conn.prepareStatement(historySql)) {
+             historyStmt.setInt(1, bookId);
+             historyStmt.setBigDecimal(2, oldPrice);
+             historyStmt.setBigDecimal(3, newPrice);
+             historyStmt.executeUpdate();
+         }
 
-                try (PreparedStatement pstmtHistory = conn.prepareStatement(insertHistorySql);
-                     PreparedStatement pstmtUpdate = conn.prepareStatement(updateSql)) {
+         try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+             updateStmt.setBigDecimal(1, newPrice);
+             updateStmt.setInt(2, bookId);
+             updateStmt.executeUpdate();
+         }
 
-                    pstmtHistory.setInt(1, book_id);
-                    pstmtHistory.setDouble(2, old_price);
-                    pstmtHistory.setDouble(3, new_price);
-                    pstmtHistory.executeUpdate();
+         conn.commit();
+         System.out.println("Book price updated successfully.");
 
-                    pstmtUpdate.setDouble(1, new_price);
-                    pstmtUpdate.setInt(2, book_id);
-                    int rows = pstmtUpdate.executeUpdate();
+     } catch (SQLException e) {
+         try {
+             conn.rollback();
+         } catch (SQLException rollbackEx) {
+             System.out.println("Rollback failed: " + rollbackEx.getMessage());
+         }
+         System.out.println("Error updating book price: " + e.getMessage());
 
-                    if (rows > 0) {
-                        conn.commit();
-                        System.out.println(">> Book price successfully updated!");
-                        System.out.println(">> Title: " + title);
-                        System.out.println(">> Old Price: " + old_price);
-                        System.out.println(">> New Price: " + new_price);
-                    } else {
-                        conn.rollback();
-                        System.out.println(">> [WARNING] Book update failed.");
-                    }
-                }
-            } catch (SQLException e) {
-                conn.rollback();
-                System.out.println(">> SQL execution error. Transaction rolled back.");
-                throw e;
-            }
-
-        } catch (SQLException e) {
-            System.out.println(">> [ERROR] Failed to update book price: " + e.getMessage());
-        } finally {
-            try {
-                conn.setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+     } finally {
+         try {
+             conn.setAutoCommit(true);
+         } catch (SQLException e) {
+             System.out.println("Failed to reset auto-commit: " + e.getMessage());
+         }
+     }
+ }
 
     // 3. Delete Existing Book (DELETE)
     public static void deleteBook(Connection conn, Scanner scanner) {
