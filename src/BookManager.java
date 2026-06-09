@@ -1,3 +1,4 @@
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -53,14 +54,26 @@ public class BookManager {
 
     // 2. Book 가격 (unit price) 수정 기능 (UPDATE)
     public static void updateBookPrice(Connection conn, Scanner scanner) {
-        System.out.println("\n=== Update Book Unit Price ===");
+    System.out.println("\n=== Update Book Unit Price ===");
 
-        System.out.print("Book ID to update: ");
-        int book_id = scanner.nextInt();
+    System.out.print("Book ID to update: ");
+    int book_id = scanner.nextInt();
 
-        System.out.print("New Unit Price: ");
-        double new_price = scanner.nextDouble();
-        scanner.nextLine();
+    System.out.print("New Unit Price: ");
+    double new_price = scanner.nextDouble();
+    scanner.nextLine();
+
+    String getPriceSql = "SELECT unit_price FROM book WHERE book_id = ?";
+    String historySql = "INSERT INTO book_price_history (book_id, old_price, new_price, changed_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
+    String sql = "UPDATE book SET unit_price = ? WHERE book_id = ?";
+
+    try {
+        double old_price;
+
+        // 기존 가격 조회
+        try (PreparedStatement pstmt = conn.prepareStatement(getPriceSql)) {
+            pstmt.setInt(1, book_id);
+            ResultSet rs = pstmt.executeQuery();
 
         String getPriceSql = "SELECT unit_price FROM book WHERE book_id = ?";
         String historySql = "INSERT INTO book_price_history (book_id, old_price, new_price, changed_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
@@ -122,7 +135,11 @@ public class BookManager {
             }
             System.out.println(">> [ERROR] Failed to update book price: " + e.getMessage());
         }
+
+    } catch (SQLException e) {
+        System.out.println(">> [ERROR] Failed to update book price: " + e.getMessage());
     }
+}
 
     // 3. Delete Existing Book (DELETE)
     public static void deleteBook(Connection conn, Scanner scanner) {

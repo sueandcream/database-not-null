@@ -35,10 +35,8 @@ public class Main {
                     case 6 -> BookManager.deleteBook(conn, scanner);
                     case 7 -> AnalysisManager.viewBestsellingBooksByCategory(conn, scanner);
                     case 8 -> AnalysisManager.compareBookSalesBeforeAfterPriceChange(conn, scanner);
-                    case 10 -> {
-                        AnalysisManager analysisManager = new AnalysisManager();
-                        analysisManager.viewTotalBookSalesByAgeGroup();
-                    }
+                    case 9 -> AnalysisManager.viewSalesStatisticsByCategory(conn, scanner);
+                    case 10 ->AnalysisManager.viewTotalBookSalesByAgeGroup(conn, scanner);
                     case 0 -> { System.out.println("Goodbye!"); return; }
                     default -> System.out.println("Invalid option.");
                 }
