@@ -85,76 +85,66 @@ public class AnalysisManager {
     }
 
     // REQ-08: Compare Book Sales Before and After Price Change (JOIN + VIEW + REQ13)
-   public static void compareBookSalesBeforeAfterPriceChange(Connection conn, Scanner scanner) {
-    System.out.println("\n=== Compare Book Sales Before/After Price Change ===");
+    public static void compareBookSalesBeforeAfterPriceChange(Connection conn, Scanner scanner) {
+        System.out.print("Enter book title keyword: ");
+        String titleKeyword = scanner.nextLine();
 
-    System.out.print("Enter book title to analyze: ");
-    String title = scanner.nextLine();
+        String sql = """
+        SELECT
+            v.title,
+            h.changed_at AS price_changed_at,
+            h.old_price,
+            h.new_price,
+            CASE
+                WHEN v.transaction_timestamp < h.changed_at THEN 'Before Price Change'
+                ELSE 'After Price Change'
+            END AS period,
+            SUM(v.quantity) AS total_quantity_sold,
+            SUM(v.subtotal) AS total_sales_amount
+        FROM order_summary_view v
+        JOIN book_price_history h
+            ON v.title = (
+                SELECT b.title
+                FROM book b
+                WHERE b.book_id = h.book_id
+            )
+        WHERE v.title LIKE ?
+        GROUP BY
+            v.title,
+            h.changed_at,
+            h.old_price,
+            h.new_price,
+            CASE
+                WHEN v.transaction_timestamp < h.changed_at THEN 'Before Price Change'
+                ELSE 'After Price Change'
+            END
+        ORDER BY v.title, h.changed_at, period
+    """;
 
-       String sql = """
-            SELECT
-                osv.title,
-                b.unit_price AS current_price,
-                osv.price_at_purchase AS sold_price,
-                SUM(osv.quantity) AS total_qty_sold,
-                SUM(osv.quantity * osv.price_at_purchase) AS total_revenue,
-                CASE
-                    WHEN osv.price_at_purchase < b.unit_price THEN 'Before Price Increase'
-                    WHEN osv.price_at_purchase > b.unit_price THEN 'Before Price Decrease'
-                    ELSE 'At Current Price'
-                END AS price_period
-            FROM order_summary_view osv
-            JOIN book b
-                ON osv.title = b.title
-               AND osv.author = b.author
-            WHERE osv.title LIKE ?
-            GROUP BY osv.title, b.unit_price, osv.price_at_purchase
-            ORDER BY osv.price_at_purchase
-        """;
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + titleKeyword + "%");
 
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            try (ResultSet rs = pstmt.executeQuery()) {
+                System.out.println("\n=== Book Sales Before/After Price Change ===");
+                System.out.printf("%-25s %-20s %-10s %-10s %-25s %-10s %-15s%n",
+                        "Title", "Changed At", "Old Price", "New Price",
+                        "Period", "Qty", "Sales Amount");
 
-        pstmt.setString(1, "%" + title + "%");
-
-        try (ResultSet rs = pstmt.executeQuery()) {
-
-            System.out.printf(
-                "\n%-30s %-12s %-12s %-15s %-10s %-15s%n",
-                "Title",
-                "Old Price",
-                "New Price",
-                "Period",
-                "Qty Sold",
-                "Revenue"
-            );
-
-            System.out.println("-".repeat(105));
-
-            boolean found = false;
-
-            while (rs.next()) {
-                found = true;
-
-                System.out.printf(
-                    "%-30s $%-11.2f $%-11.2f %-15s %-10d $%-14.2f%n",
-                    rs.getString("title"),
-                    rs.getDouble("old_price"),
-                    rs.getDouble("new_price"),
-                    rs.getString("period"),
-                    rs.getInt("total_qty_sold"),
-                    rs.getDouble("total_revenue")
-                );
+                while (rs.next()) {
+                    System.out.printf("%-25s %-20s %-10.2f %-10.2f %-25s %-10d %-15.2f%n",
+                            rs.getString("title"),
+                            rs.getTimestamp("price_changed_at"),
+                            rs.getBigDecimal("old_price"),
+                            rs.getBigDecimal("new_price"),
+                            rs.getString("period"),
+                            rs.getInt("total_quantity_sold"),
+                            rs.getBigDecimal("total_sales_amount"));
+                }
             }
-
-            if (!found) {
-                System.out.println(">> No sales data found for: " + title);
-            }
+        } catch (SQLException e) {
+            System.out.println("Error comparing book sales: " + e.getMessage());
         }
-
-    } catch (SQLException e) {
-        System.out.println(">> [ERROR] " + e.getMessage());
     }
-}
     
     // REQ14: 고객 인구통계 정보(나이대) 기반 판매 분석
     // 사용자가 나이를 입력하면 해당 연령대의 판매량과 추천 도서를 조회
