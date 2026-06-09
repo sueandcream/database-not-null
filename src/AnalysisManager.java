@@ -124,7 +124,7 @@ public static void compareBookSalesBeforeAfterPriceChange(Connection conn, Scann
         pstmt.setString(1, "%" + titleKeyword + "%");
         try (ResultSet rs = pstmt.executeQuery()) {
             System.out.println("\n=== Book Sales Before/After Price Change ===");
-            System.out.printf("%-25s %-20s %-10s %-10s %-25s %-10s %-15s%n",
+            System.out.printf("%-25s %-22s %-10s %-10s %-26s %-6s %-15s%n",
                     "Title", "Changed At", "Old Price", "New Price",
                     "Period", "Qty", "Sales Amount");
             System.out.println("-".repeat(115));
@@ -132,7 +132,7 @@ public static void compareBookSalesBeforeAfterPriceChange(Connection conn, Scann
             boolean found = false;
             while (rs.next()) {
                 found = true;
-                System.out.printf("%-25s %-20s %-10.2f %-10.2f %-25s %-10d %-15.2f%n",
+                System.out.printf("%-25s %-22s %-10.2f %-10.2f %-26s %-6d %-15.2f%n",
                         rs.getString("title"),
                         rs.getTimestamp("price_changed_at"),
                         rs.getBigDecimal("old_price"),
