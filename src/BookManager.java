@@ -54,7 +54,9 @@ public class BookManager {
 
  // 2. Book 가격(unit price) 수정 기능 (UPDATE with Transaction)
  public static void updateBookPrice(Connection conn, Scanner scanner) {
-     System.out.print("Enter book ID to update price: ");
+     System.out.println("\n=== Update Book Unit Price ===");
+     
+     System.out.print("Book ID to update: ");
      int bookId = Integer.parseInt(scanner.nextLine());
 
      System.out.print("Enter new price: ");
