@@ -5,6 +5,7 @@
 DROP VIEW IF EXISTS order_summary_view;
 DROP VIEW IF EXISTS book_sales_summary_view;
 
+DROP TABLE IF EXISTS book_price_history;
 DROP TABLE IF EXISTS customer_history;
 DROP TABLE IF EXISTS market_basket;
 DROP TABLE IF EXISTS sales;

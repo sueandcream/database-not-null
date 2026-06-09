@@ -63,22 +63,35 @@ CREATE TABLE market_basket (
                                market_basket_id  INTEGER       NOT NULL,
                                book_id           INTEGER       NOT NULL,
                                quantity          INTEGER       NOT NULL CHECK (quantity > 0),
-                               price_at_purchase NUMERIC(10,2) NOT NULL,
+                               price_at_purchase NUMERIC(10,2) NOT NULL CHECK (price_at_purchase > 0),
                                FOREIGN KEY (market_basket_id) REFERENCES total_sales(market_basket_id),
-                               FOREIGN KEY (book_id)       REFERENCES book(book_id)
+                               FOREIGN KEY (book_id)       REFERENCES book(book_id),
+                               UNIQUE (market_basket_id, book_id)
 );
 
 -- 8. customer_history
 CREATE TABLE customer_history (
-                                  history_id       INTEGER AUTO_INCREMENT PRIMARY KEY,
+                                  history_id       INTEGER NOT NULL,
                                   customer_id      INTEGER   NOT NULL,
-                                  city             VARCHAR(50),
-                                  birth_date       DATE,
-                                  membership_grade VARCHAR(20),
-                                  changed_at       TIMESTAMP NOT NULL,
-                                  FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+                                  old_city VARCHAR(50),
+                                  new_city VARCHAR(50),
+                                  old_birth_date DATE,
+                                  new_birth_date DATE,
+                                  old_membership_grade VARCHAR(20),
+                                  new_membership_grade VARCHAR(20),
+                                  changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                  FOREIGN KEY (customer_id) REFERENCES customer(Customer_ID)
+);
+CREATE TABLE book_price_history (
+    history_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    book_id INTEGER NOT NULL,
+    old_price NUMERIC(10,2) NOT NULL,
+    new_price NUMERIC(10,2) NOT NULL,
+    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (book_id) REFERENCES book(book_id)
 );
 
+   
 -- ============================================================
 -- INDEX (REQ3, REQ11)
 -- ============================================================
