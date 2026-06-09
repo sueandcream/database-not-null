@@ -53,31 +53,61 @@ public class BookManager {
 
     // 2. Book 가격(unit price) 수정 기능 (UPDATE)
     public static void updateBookPrice(Connection conn, Scanner scanner) {
-        System.out.println("\n=== Update Book Unit Price ===");
-        
-        System.out.print("Book ID to update: ");
-        int book_id = scanner.nextInt();
-        
-        System.out.print("New Unit Price: ");
-        double new_price = scanner.nextDouble();
-        scanner.nextLine();
+    System.out.println("\n=== Update Book Unit Price ===");
 
-        String sql = "UPDATE book SET unit_price = ? WHERE book_id = ?";
+    System.out.print("Book ID to update: ");
+    int book_id = scanner.nextInt();
 
+    System.out.print("New Unit Price: ");
+    double new_price = scanner.nextDouble();
+    scanner.nextLine();
+
+    String getPriceSql = "SELECT unit_price FROM book WHERE book_id = ?";
+    String historySql = "INSERT INTO book_price_history (book_id, old_price, new_price, changed_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
+    String sql = "UPDATE book SET unit_price = ? WHERE book_id = ?";
+
+    try {
+        double old_price;
+
+        // 기존 가격 조회
+        try (PreparedStatement pstmt = conn.prepareStatement(getPriceSql)) {
+            pstmt.setInt(1, book_id);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (!rs.next()) {
+                System.out.println(">> [WARNING] No book found with the given ID.");
+                return;
+            }
+
+            old_price = rs.getDouble("unit_price");
+        }
+
+        // 가격 변경 이력 저장
+        try (PreparedStatement pstmt = conn.prepareStatement(historySql)) {
+            pstmt.setInt(1, book_id);
+            pstmt.setDouble(2, old_price);
+            pstmt.setDouble(3, new_price);
+            pstmt.executeUpdate();
+        }
+
+        // 기존 가격 업데이트
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setDouble(1, new_price);
             pstmt.setInt(2, book_id);
 
             int rows = pstmt.executeUpdate();
+
             if (rows > 0) {
                 System.out.println(">> Book price successfully updated!");
             } else {
                 System.out.println(">> [WARNING] No book found with the given ID.");
             }
-        } catch (SQLException e) {
-            System.out.println(">> [ERROR] Failed to update book price: " + e.getMessage());
         }
+
+    } catch (SQLException e) {
+        System.out.println(">> [ERROR] Failed to update book price: " + e.getMessage());
     }
+}
 
     // 3. Delete Existing Book (DELETE)
     public static void deleteBook(Connection conn, Scanner scanner) {
