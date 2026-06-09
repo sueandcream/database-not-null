@@ -131,16 +131,17 @@ INSERT INTO market_basket VALUES (28, 1012, 7, 2, 25.00);
 INSERT INTO market_basket VALUES (29, 1012, 15, 1, 15.50);
 
 -- 8. customer_history
-INSERT INTO customer_history VALUES (1, 1, 'Busan', '2004-03-12', 'Silver', 'Seoul', '2004-03-12', 'Gold', '2026-05-03 10:00:00'),
-INSERT INTO customer_history VALUES (2, 2, 'Seoul', '1998-07-21', 'Bronze', 'Busan', '1998-07-21', 'Silver', '2026-05-04 10:00:00'),
-INSERT INTO customer_history VALUES (3, 3, 'Daegu', '1995-11-05', 'Silver', 'Incheon', '1995-11-05', 'Bronze', '2026-05-02 10:00:00'),
-INSERT INTO customer_history VALUES (4, 4, 'Incheon', '2001-02-17', 'Silver', 'Daegu', '2001-02-17', 'Gold', '2026-05-03 10:00:00'),
-INSERT INTO customer_history VALUES (5, 5, 'Seoul', '1989-09-30', 'Bronze', 'Daejeon', '1989-09-30', 'Silver', '2026-05-04 10:00:00'),
-INSERT INTO customer_history VALUES (6, 6, 'Busan', '1992-12-14', 'Silver', 'Gwangju', '1992-12-14', 'Gold', '2026-05-04 10:00:00'),
-INSERT INTO customer_history VALUES (7, 7, 'Daejeon', '1985-04-08', 'Bronze', 'Seoul', '1985-04-08', 'Bronze', '2026-05-05 10:00:00'),
-INSERT INTO customer_history VALUES (8, 8, 'Seoul', '2006-06-25', 'Bronze', 'Suwon', '2006-06-25', 'Silver', '2026-05-05 10:00:00'),
-INSERT INTO customer_history VALUES (9, 9, 'Gwangju', '1979-01-19', 'Silver', 'Ulsan', '1979-01-19', 'Gold', '2026-05-06 10:00:00'),
-INSERT INTO customer_history VALUES (10, 10, 'Busan', '2000-10-03', 'Silver', 'Jeju', '2000-10-03', 'Bronze', '2026-05-06 10:00:00');
+INSERT INTO customer_history VALUES (1, 1, 'Busan',   'Seoul',   '2004-03-12', '2004-03-12', 'Silver', 'Gold',   '2026-05-03 10:00:00');
+INSERT INTO customer_history VALUES (2, 2, 'Seoul',   'Busan',   '1998-07-21', '1998-07-21', 'Bronze', 'Silver', '2026-05-04 10:00:00');
+INSERT INTO customer_history VALUES (3, 3, 'Daegu',   'Incheon', '1995-11-05', '1995-11-05', 'Silver', 'Bronze', '2026-05-02 10:00:00');
+INSERT INTO customer_history VALUES (4, 4, 'Incheon', 'Daegu',   '2001-02-17', '2001-02-17', 'Silver', 'Gold',   '2026-05-03 10:00:00');
+INSERT INTO customer_history VALUES (5, 5, 'Seoul',   'Daejeon', '1989-09-30', '1989-09-30', 'Bronze', 'Silver', '2026-05-04 10:00:00');
+INSERT INTO customer_history VALUES (6, 6, 'Busan',   'Gwangju', '1992-12-14', '1992-12-14', 'Silver', 'Gold',   '2026-05-04 10:00:00');
+INSERT INTO customer_history VALUES (7, 7, 'Daejeon', 'Seoul',   '1985-04-08', '1985-04-08', 'Bronze', 'Bronze', '2026-05-05 10:00:00');
+INSERT INTO customer_history VALUES (8, 8, 'Seoul',   'Suwon',   '2006-06-25', '2006-06-25', 'Bronze', 'Silver', '2026-05-05 10:00:00');
+INSERT INTO customer_history VALUES (9, 9, 'Gwangju', 'Ulsan',   '1979-01-19', '1979-01-19', 'Silver', 'Gold',   '2026-05-06 10:00:00');
+INSERT INTO customer_history VALUES (10, 10, 'Busan', 'Jeju',    '2000-10-03', '2000-10-03', 'Silver', 'Bronze', '2026-05-06 10:00:00');
+
 
 
 -- 9. book_price_history
