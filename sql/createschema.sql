@@ -109,23 +109,42 @@ CREATE VIEW order_summary_view AS
 SELECT
     s.sales_id,
     s.transaction_timestamp,
+
+    c.customer_id,
     c.first_name,
     c.last_name,
     c.city,
     c.membership_grade,
+
+    b.book_id,
     b.title,
     b.author,
+    b.unit_price,
+
     cat.category_name,
+
     mb.quantity,
     mb.price_at_purchase,
+
     mb.quantity * mb.price_at_purchase AS subtotal,
+
     ts.total_amount
+
 FROM sales s
-         JOIN customer      c   ON s.customer_id       = c.customer_id
-         JOIN total_sales   ts  ON s.market_basket_id  = ts.market_basket_id
-         JOIN market_basket mb  ON ts.market_basket_id = mb.market_basket_id
-         JOIN book          b   ON mb.book_id        = b.book_id
-         JOIN category      cat ON b.category_id        = cat.category_id;
+JOIN customer c
+    ON s.customer_id = c.customer_id
+
+JOIN total_sales ts
+    ON s.market_basket_id = ts.market_basket_id
+
+JOIN market_basket mb
+    ON ts.market_basket_id = mb.market_basket_id
+
+JOIN book b
+    ON mb.book_id = b.book_id
+
+JOIN category cat
+    ON b.category_id = cat.category_id;
 
 -- ============================================================
 -- VIEW 2 : book_sales_summary_view (REQ7 - 집계 + GROUP BY)
