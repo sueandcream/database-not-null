@@ -51,7 +51,7 @@ public class BookManager {
         }
     }
 
- // 2. Book 가격(unit price) 수정 기능 (UPDATE with Transaction)
+    // 2. Book 가격 (unit price) 수정 기능 (UPDATE)
     public static void updateBookPrice(Connection conn, Scanner scanner) {
         System.out.println("\n=== Update Book Unit Price ===");
 
@@ -62,65 +62,65 @@ public class BookManager {
         double new_price = scanner.nextDouble();
         scanner.nextLine();
 
-        String selectSql = "SELECT title, unit_price FROM book WHERE book_id = ?";
-        String insertHistorySql =
-                "INSERT INTO book_price_history (book_id, old_price, new_price, changed_at) " +
-                "VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
-        String updateSql = "UPDATE book SET unit_price = ? WHERE book_id = ?";
+        String getPriceSql = "SELECT unit_price FROM book WHERE book_id = ?";
+        String historySql = "INSERT INTO book_price_history (book_id, old_price, new_price, changed_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)";
+        String sql = "UPDATE book SET unit_price = ? WHERE book_id = ?";
 
         try {
+            // 트랜잭션 시작: 자동 커밋 비활성화
             conn.setAutoCommit(false);
 
-            try (PreparedStatement pstmtSelect = conn.prepareStatement(selectSql)) {
-                pstmtSelect.setInt(1, book_id);
-                ResultSet rs = pstmtSelect.executeQuery();
+            double old_price;
+
+            // 기존 가격 조회
+            try (PreparedStatement pstmt = conn.prepareStatement(getPriceSql)) {
+                pstmt.setInt(1, book_id);
+                ResultSet rs = pstmt.executeQuery();
 
                 if (!rs.next()) {
                     System.out.println(">> [WARNING] No book found with the given ID.");
-                    conn.rollback();
+                    conn.rollback();  // 트랜잭션 취소
+                    conn.setAutoCommit(true);  // 자동 커밋 복구
                     return;
                 }
 
-                String title = rs.getString("title");
-                double old_price = rs.getDouble("unit_price");
+                old_price = rs.getDouble("unit_price");
+            }
 
-                try (PreparedStatement pstmtHistory = conn.prepareStatement(insertHistorySql);
-                     PreparedStatement pstmtUpdate = conn.prepareStatement(updateSql)) {
+            // 가격 변경 이력 저장
+            try (PreparedStatement pstmt = conn.prepareStatement(historySql)) {
+                pstmt.setInt(1, book_id);
+                pstmt.setDouble(2, old_price);
+                pstmt.setDouble(3, new_price);
+                pstmt.executeUpdate();
+            }
 
-                    pstmtHistory.setInt(1, book_id);
-                    pstmtHistory.setDouble(2, old_price);
-                    pstmtHistory.setDouble(3, new_price);
-                    pstmtHistory.executeUpdate();
+            // 기존 가격 업데이트
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                pstmt.setDouble(1, new_price);
+                pstmt.setInt(2, book_id);
 
-                    pstmtUpdate.setDouble(1, new_price);
-                    pstmtUpdate.setInt(2, book_id);
-                    int rows = pstmtUpdate.executeUpdate();
+                int rows = pstmt.executeUpdate();
 
-                    if (rows > 0) {
-                        conn.commit();
-                        System.out.println(">> Book price successfully updated!");
-                        System.out.println(">> Title: " + title);
-                        System.out.println(">> Old Price: " + old_price);
-                        System.out.println(">> New Price: " + new_price);
-                    } else {
-                        conn.rollback();
-                        System.out.println(">> [WARNING] Book update failed.");
-                    }
+                if (rows > 0) {
+                    conn.commit();  // 성공 시 커밋
+                    conn.setAutoCommit(true);  // 자동 커밋 복구
+                    System.out.println(">> Book price successfully updated!");
+                } else {
+                    conn.rollback();  // 트랜잭션 취소
+                    conn.setAutoCommit(true);  // 자동 커밋 복구
+                    System.out.println(">> [WARNING] No book found with the given ID.");
                 }
-            } catch (SQLException e) {
-                conn.rollback();
-                System.out.println(">> SQL execution error. Transaction rolled back.");
-                throw e;
             }
 
         } catch (SQLException e) {
-            System.out.println(">> [ERROR] Failed to update book price: " + e.getMessage());
-        } finally {
             try {
-                conn.setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
+                conn.rollback();  // 실패 시 롤백
+                conn.setAutoCommit(true);  // 자동 커밋 복구
+            } catch (SQLException ex) {
+                ex.printStackTrace();
             }
+            System.out.println(">> [ERROR] Failed to update book price: " + e.getMessage());
         }
     }
 
