@@ -92,42 +92,34 @@ public class AnalysisManager {
     String title = scanner.nextLine();
 
     String sql = """
-        SELECT
-            b.title,
-            h.old_price,
-            h.new_price,
-
-            CASE
-                WHEN s.transaction_timestamp < h.changed_at
-                    THEN 'Before Change'
-                ELSE 'After Change'
-            END AS period,
-
-            SUM(mb.quantity) AS total_qty_sold,
-            SUM(mb.quantity * mb.price_at_purchase) AS total_revenue
-
-        FROM book_price_history h
-
-        JOIN book b
-            ON h.book_id = b.book_id
-
-        JOIN market_basket mb
-            ON b.book_id = mb.book_id
-
-        JOIN sales s
-            ON mb.market_basket_id = s.market_basket_id
-
-        WHERE b.title LIKE ?
-
-        GROUP BY
-            b.title,
-            h.old_price,
-            h.new_price,
-            period
-
-        ORDER BY
-            h.changed_at
-        """;
+SELECT
+    v.title,
+    h.changed_at AS price_changed_at,
+    h.old_price,
+    h.new_price,
+    CASE
+        WHEN v.transaction_timestamp < h.changed_at THEN 'Before Price Change'
+        ELSE 'After Price Change'
+    END AS period,
+    SUM(v.quantity) AS total_quantity_sold,
+    SUM(v.subtotal) AS total_sales_amount
+FROM order_summary_view v
+JOIN book_price_history h
+    ON v.book_id = h.book_id
+WHERE v.title LIKE ?
+GROUP BY
+    v.title,
+    h.changed_at,
+    h.old_price,
+    h.new_price,
+    CASE
+        WHEN v.transaction_timestamp < h.changed_at THEN 'Before Price Change'
+        ELSE 'After Price Change'
+    END
+ORDER BY
+    h.changed_at,
+    period
+""";
 
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
