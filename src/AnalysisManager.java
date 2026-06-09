@@ -91,42 +91,25 @@ public class AnalysisManager {
     System.out.print("Enter book title to analyze: ");
     String title = scanner.nextLine();
 
-    String sql = """
-        SELECT
-            b.title,
-            h.old_price,
-            h.new_price,
-
-            CASE
-                WHEN s.transaction_timestamp < h.changed_at
-                    THEN 'Before Change'
-                ELSE 'After Change'
-            END AS period,
-
-            SUM(mb.quantity) AS total_qty_sold,
-            SUM(mb.quantity * mb.price_at_purchase) AS total_revenue
-
-        FROM book_price_history h
-
-        JOIN book b
-            ON h.book_id = b.book_id
-
-        JOIN market_basket mb
-            ON b.book_id = mb.book_id
-
-        JOIN sales s
-            ON mb.market_basket_id = s.market_basket_id
-
-        WHERE b.title LIKE ?
-
-        GROUP BY
-            b.title,
-            h.old_price,
-            h.new_price,
-            period
-
-        ORDER BY
-            h.changed_at
+       String sql = """
+            SELECT
+                osv.title,
+                b.unit_price AS current_price,
+                osv.price_at_purchase AS sold_price,
+                SUM(osv.quantity) AS total_qty_sold,
+                SUM(osv.quantity * osv.price_at_purchase) AS total_revenue,
+                CASE
+                    WHEN osv.price_at_purchase < b.unit_price THEN 'Before Price Increase'
+                    WHEN osv.price_at_purchase > b.unit_price THEN 'Before Price Decrease'
+                    ELSE 'At Current Price'
+                END AS price_period
+            FROM order_summary_view osv
+            JOIN book b
+                ON osv.title = b.title
+               AND osv.author = b.author
+            WHERE osv.title LIKE ?
+            GROUP BY osv.title, b.unit_price, osv.price_at_purchase
+            ORDER BY osv.price_at_purchase
         """;
 
     try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
