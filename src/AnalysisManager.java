@@ -11,7 +11,7 @@ public class AnalysisManager {
         System.out.println("\n=== View Bestselling Books by Category ===");
         System.out.print("Enter category name. Press Enter to view all categories: ");
         String categoryName = scanner.nextLine().trim();
-        
+
         String sql = """
             SELECT
                 c.category_name,
@@ -35,14 +35,14 @@ public class AnalysisManager {
                 v.total_quantity_sold DESC,
                 v.total_revenue DESC
         """;
-    
+
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             if (categoryName.isBlank()) {
                 pstmt.setString(1, "%");
             } else {
                 pstmt.setString(1, "%" + categoryName + "%");
             }
-    
+
             try (ResultSet rs = pstmt.executeQuery()) {
                 System.out.printf(
                     "\n%-15s %-8s %-30s %-20s %-20s %-15s %-10s %-15s%n",
@@ -56,12 +56,12 @@ public class AnalysisManager {
                     "Revenue"
                 );
                 System.out.println("-".repeat(140));
-    
+
                 boolean found = false;
-    
+
                 while (rs.next()) {
                     found = true;
-    
+
                     System.out.printf(
                         "%-15s %-8d %-30s %-20s %-20s $%-14.2f %-10d $%-14.2f%n",
                         rs.getString("category_name"),
@@ -74,7 +74,7 @@ public class AnalysisManager {
                         rs.getDouble("total_revenue")
                     );
                 }
-    
+
                 if (!found) {
                     System.out.println(">> No bestselling book data found for the given category.");
                 }
@@ -145,31 +145,24 @@ public class AnalysisManager {
             System.out.println("Error comparing book sales: " + e.getMessage());
         }
     }
-    
+
     // REQ14: 고객 인구통계 정보(나이대) 기반 판매 분석
     // 사용자가 나이를 입력하면 해당 연령대의 판매량과 추천 도서를 조회
-    public void viewTotalBookSalesByAgeGroup() {
-        Scanner sc = new Scanner(System.in);
-
+    public static void viewTotalBookSalesByAgeGroup(Connection conn, Scanner scanner) {
         System.out.println("===== Age Group Sales Analysis =====");
         System.out.print("Enter age: ");
-        int age = sc.nextInt();
+        int age = Integer.parseInt(scanner.nextLine());
 
-        // 입력된 나이를 연령대로 변환
         String ageGroup = getAgeGroup(age);
 
         System.out.println();
         System.out.println("Age Group: " + ageGroup);
 
-        // 변경 전후 판매량 분석
-        printSalesBeforeAfterChange(ageGroup);
-
-        // 연령대별 추천 도서 출력
-        printTopRecommendedBooks(ageGroup);
+        printSalesBeforeAfterChange(conn, ageGroup);
+        printTopRecommendedBooks(conn, ageGroup);
     }
 
-    // 입력받은 나이를 연령대 문자열로 변환
-    private String getAgeGroup(int age) {
+    private static String getAgeGroup(int age) {
         if (age < 20) {
             return "Under 20";
         } else if (age <= 29) {
@@ -184,34 +177,34 @@ public class AnalysisManager {
     // REQ14
     // 고객 정보 변경(customer_history)을 기준으로
     // 변경 전후 판매 수량을 비교 분석
-    private void printSalesBeforeAfterChange(String ageGroup) {
+    private static void printSalesBeforeAfterChange(Connection conn, String ageGroup) {
         String sql = """
-                SELECT
-                    CASE
-                        WHEN s.transaction_timestamp < ch.changed_at THEN 'Before Change'
-                        ELSE 'After Change'
-                    END AS change_period,
-                    SUM(mb.quantity) AS total_books_sold
-                FROM customer c
-                JOIN customer_history ch ON c.customer_id = ch.customer_id
-                JOIN sales s ON c.customer_id = s.customer_id
-                JOIN total_sales ts ON s.market_basket_id = ts.market_basket_id
-                JOIN market_basket mb ON ts.market_basket_id = mb.market_basket_id
-                WHERE
-                    CASE
-                        WHEN TIMESTAMPDIFF(YEAR, c.birth_date, s.transaction_timestamp) < 20 THEN 'Under 20'
-                        WHEN TIMESTAMPDIFF(YEAR, c.birth_date, s.transaction_timestamp) BETWEEN 20 AND 29 THEN '20s'
-                        WHEN TIMESTAMPDIFF(YEAR, c.birth_date, s.transaction_timestamp) BETWEEN 30 AND 39 THEN '30s'
-                        ELSE '40+'
-                    END = ?
-                GROUP BY change_period
-                """;
+        SELECT
+            CASE
+                WHEN s.transaction_timestamp < ch.changed_at THEN 'Before Change'
+                ELSE 'After Change'
+            END AS change_period,
+            SUM(mb.quantity) AS total_books_sold,
+            SUM(mb.quantity * mb.price_at_purchase) AS total_sales_amount
+        FROM customer c
+        JOIN customer_history ch ON c.customer_id = ch.customer_id
+        JOIN sales s ON c.customer_id = s.customer_id
+        JOIN total_sales ts ON s.market_basket_id = ts.market_basket_id
+        JOIN market_basket mb ON ts.market_basket_id = mb.market_basket_id
+        WHERE
+            CASE
+                WHEN TIMESTAMPDIFF(YEAR, c.birth_date, s.transaction_timestamp) < 20 THEN 'Under 20'
+                WHEN TIMESTAMPDIFF(YEAR, c.birth_date, s.transaction_timestamp) BETWEEN 20 AND 29 THEN '20s'
+                WHEN TIMESTAMPDIFF(YEAR, c.birth_date, s.transaction_timestamp) BETWEEN 30 AND 39 THEN '30s'
+                ELSE '40+'
+            END = ?
+        GROUP BY change_period
+        """;
 
         int beforeSales = 0;
         int afterSales = 0;
 
         try (
-                Connection conn = DBConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)
         ) {
             pstmt.setString(1, ageGroup);
@@ -245,7 +238,7 @@ public class AnalysisManager {
 
     // REQ14 + GROUP BY
     // 동일 연령대 고객들이 가장 많이 구매한 도서 TOP 3 추천
-    private void printTopRecommendedBooks(String ageGroup) {
+    private static void printTopRecommendedBooks(Connection conn, String ageGroup){
         String sql = """
                 SELECT
                     b.title,
@@ -268,7 +261,6 @@ public class AnalysisManager {
                 """;
 
         try (
-                Connection conn = DBConnection.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)
         ) {
             pstmt.setString(1, ageGroup);
@@ -297,7 +289,7 @@ public class AnalysisManager {
         }
     }
 
-    
+
     // [GROUP BY] Sales Statistics by Category
     // Displays aggregated sales metrics for all categories to analyze performance
     public static void viewSalesStatisticsByCategory(Connection conn) {
@@ -319,7 +311,7 @@ public class AnalysisManager {
              ResultSet rs = pstmt.executeQuery()) {
 
             System.out.printf(
-                    "\n%-20s %-20s %-20s %-20s%n", 
+                    "\n%-20s %-20s %-20s %-20s%n",
                     "Category Name", "Books Registered", "Total Qty Sold", "Total Revenue"
             );
             System.out.println("-".repeat(85));
@@ -329,10 +321,10 @@ public class AnalysisManager {
                 found = true;
 
                 System.out.printf(
-                        "%-20s %-20d %-20d $%-14.2f%n", 
-                        rs.getString("category_name"), 
-                        rs.getInt("unique_books_count"), 
-                        rs.getInt("total_qty_sold"), 
+                        "%-20s %-20d %-20d $%-14.2f%n",
+                        rs.getString("category_name"),
+                        rs.getInt("unique_books_count"),
+                        rs.getInt("total_qty_sold"),
                         rs.getDouble("category_total_revenue")
                 );
             }
