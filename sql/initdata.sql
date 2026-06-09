@@ -165,3 +165,33 @@ INSERT INTO book_price_history
 (book_id, old_price, new_price, changed_at)
 VALUES
 (15, 13.00, 15.50, '2026-05-05 09:00:00');
+
+INSERT INTO book_price_history
+(book_id, old_price, new_price, changed_at)
+VALUES
+(1, 13.00, 15.00, '2026-05-01 09:00:00');
+
+INSERT INTO book_price_history
+(book_id, old_price, new_price, changed_at)
+VALUES
+(4, 25.00, 27.00, '2026-05-02 09:30:00');
+
+INSERT INTO book_price_history
+(book_id, old_price, new_price, changed_at)
+VALUES
+(6, 12.00, 14.00, '2026-05-03 08:45:00');
+
+INSERT INTO book_price_history
+(book_id, old_price, new_price, changed_at)
+VALUES
+(8, 11.00, 13.00, '2026-05-03 14:00:00');
+
+INSERT INTO book_price_history
+(book_id, old_price, new_price, changed_at)
+VALUES
+(12, 15.00, 17.00, '2026-05-04 10:15:00');
+
+INSERT INTO book_price_history
+(book_id, old_price, new_price, changed_at)
+VALUES
+(18, 20.00, 23.00, '2026-05-05 11:00:00');
